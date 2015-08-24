@@ -1,0 +1,75 @@
+snippet env
+	#!/usr/bin/env python
+	# -*- coding:gbk -*-
+	# Authored by ZhangAo
+	# `strftime("%Y-%m-%d %H:%M:%S")`
+
+	"""${1}
+	"""
+
+	import sys
+	import os
+	import traceback
+	from argparse import ArgumentParser
+
+	if __name__ == "__main__":
+		arg_parser = ArgumentParser()
+		arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
+		arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${2}
+		args = arg_parser.parse_args()
+		
+snippet arg
+	arg_parser = ArgumentParser()
+	arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
+	arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${1}
+	args = arg_parser.parse_args()
+snippet fs
+	ifs = None
+	ofs = None
+	if args.${1:input} is None or not os.path.isfile(args.$1):
+		ifs = sys.stdin
+	else:
+		ifs = open(args.$1, 'r')
+	if args.${2:output} is None:
+		ofs = sys.stdout
+	else:
+		ofs = open(args.$2, 'w')
+
+	${3}
+
+	ifs.close()
+	ofs.close()
+snippet stderr
+	sys.stderr.write("${1}\n")${2}
+snippet forline
+	for line in ifs:
+		tokens = line.rstrip().split('${1:\t}')
+		${2}
+snippet forl
+	for line in ifs:
+		tokens = line.rstrip().split('${1:\t}')
+		${2}
+snippet count
+		line_count += 1
+		if line_count % ${1:10000} == 0:
+			sys.stderr.write("\r>>> processed \033[1;31;40m%d\033[0m lines."%(line_count))
+	sys.stderr.write("\r>>> done! totally processed \033[1;31;40m%d\033[0m lines.\n"%(line_count))
+	${2}
+snippet forc
+	line_count = 0
+	for line in ifs:
+		tokens = line.rstrip().split('${1:\t}')
+		${3}
+		line_count += 1
+		if line_count % ${2:10000} == 0:
+			sys.stderr.write("\r>>> processed \033[1;31;40m%d\033[0m lines."%(line_count))
+	sys.stderr.write("\r>>> done! totally processed \033[1;31;40m%d\033[0m lines.\n"%(line_count))
+snippet group
+	group = grouper.Grouper(ifs)
+	while group.has_next():
+		key, value = group.next_group()
+		${1}
+snippet prtkv
+	ofs.write("%s\t%s\n" % (${1}, '${2:\t}'.join(${3})))${4}
+snippet prtkv2
+	ofs.write("%s\t%s\n" % ('${1:_}'.join([${2}]), '${3:\t}'.join([${4}])))${5}

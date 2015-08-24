@@ -1,0 +1,15 @@
+# Class
+snippet class
+	class ${1:`Filename('$1', 'name')`} {
+	public:
+		$1(${2});
+		~$1();
+
+	private:
+		${3}
+	};  // class $1
+snippet struct
+	struct ${1:type_t} {
+		${2}
+	};  // struct $1
+
