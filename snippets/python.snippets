@@ -1,15 +1,17 @@
 snippet #!
-	#!/usr/bin/python
+	#!/usr/bin/env python
+	#-*- coding: gb18030 -*-
 
 snippet imp
 	import ${1:module}
 # Module Docstring
 snippet docs
-	'''
+	"""${3:description}
+
 	File: ${1:`Filename('$1.py', 'foo.py')`}
 	Author: ${2:`g:snips_author`}
-	Description: ${3}
-	'''
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
 snippet wh
 	while ${1:condition}:
 		${2:# code...}
@@ -84,39 +86,136 @@ snippet ifmain
 # __magic__
 snippet _
 	__${1:init}__${2}
-snippet env
-	#!/usr/bin/env python
-	# -*- coding:gbk -*-
-	# Authored by ZhangAo
-	# `strftime("%Y-%m-%d %H:%M:%S")`
+snippet logs
+	logging.basicConfig(level=logging.DEBUG,
+						format='%(levelname)s: %(asctime)s %(filename)s[line:%(lineno)d]'
+							   ' [%(process)d] %(message)s',
+						datefmt='%m-%d %H:%M:%S',
+						filename=None,
+						filemode='a')
+snippet initenv
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
 
-	"""${1}
+	"""${1:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import ${2}
+snippet benv
+	#!/usr/bin/env ${1:python}
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${2:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
 	"""
 
 	import sys
 	import os
 	import traceback
+	import logging
 	from argparse import ArgumentParser
+	${3}
+	if __name__ == "__main__":
+		arg_parser = ArgumentParser(description="$2")
+		arg_parser.add_argument("input", nargs="?", help="input file path")
+		arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${4}
+		args = arg_parser.parse_args()
+
+		${5}
+		
+snippet env
+	#!/usr/bin/env python
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${1:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import sys
+	import os
+	import traceback
+	import logging
+	from argparse import ArgumentParser
+	${2}
+	if __name__ == "__main__":
+		arg_parser = ArgumentParser(description="$1")
+		arg_parser.add_argument("input", nargs="?", help="input file path")
+		arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${3}
+		args = arg_parser.parse_args()
+
+		${4}
+		
+snippet utenv
+	#!/usr/bin/env ${1:python}
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""unittest of $3
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import sys
+	import os
+	import traceback
+	import logging
+	import unittest
+
+	sys.path.append('${2:..}')
+	import ${3:module_to_be_tested}
+	sys.path.pop()
+
+	${4}
 
 	if __name__ == "__main__":
-		arg_parser = ArgumentParser()
-		arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
-		arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${2}
-		args = arg_parser.parse_args()
-		
+		logging.basicConfig(level=logging.DEBUG,
+							format='%(levelname)s: %(asctime)s %(filename)s[line:%(lineno)d]'
+								   ' [%(process)d] %(message)s',
+							datefmt='%m-%d %H:%M:%S,%m',
+							filename=None,
+							filemode='a')
+
+		unittest.main()
 snippet arg
-	arg_parser = ArgumentParser()
-	arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
-	arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${1}
+	arg_parser = ArgumentParser(description="${1}")
+	arg_parser.add_argument("input", nargs="?", help="input file path")
+	arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${2}
 	args = arg_parser.parse_args()
 snippet fs
 	ifs = None
 	ofs = None
-	if args.${1:input} is None or not os.path.isfile(args.$1):
+	if args.${1:input} is None:
+		logging.info("<input> is None. using stdin instead.")
 		ifs = sys.stdin
-	else:
+	elif os.path.isfile(args.$1):
 		ifs = open(args.$1, 'r')
+	else:
+		logging.critical("input file is not exist: [%s]" % args.${1:input})
+		exit(-1)
 	if args.${2:output} is None:
+		logging.info("<output> is None. using stdout instead.")
 		ofs = sys.stdout
 	else:
 		ofs = open(args.$2, 'w')
@@ -129,11 +228,11 @@ snippet stderr
 	sys.stderr.write("${1}\n")${2}
 snippet forline
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${2}
 snippet forl
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${2}
 snippet count
 		line_count += 1
@@ -144,7 +243,7 @@ snippet count
 snippet forc
 	line_count = 0
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${3}
 		line_count += 1
 		if line_count % ${2:10000} == 0:
@@ -153,9 +252,34 @@ snippet forc
 snippet group
 	group = grouper.Grouper(ifs)
 	while group.has_next():
+		key = group.get_key()
+		${1}
+		while group.key_same():
+			value = group.next_value()
+			${2}
+snippet group2
+	group = grouper.Grouper(ifs)
+	while group.has_next():
 		key, value = group.next_group()
 		${1}
+snippet joint
+	'\t'.join([${1}])${2}
 snippet prtkv
 	ofs.write("%s\t%s\n" % (${1}, '${2:\t}'.join(${3})))${4}
 snippet prtkv2
 	ofs.write("%s\t%s\n" % ('${1:_}'.join([${2}]), '${3:\t}'.join([${4}])))${5}
+snippet pjoin
+	ofs.write('\t'.join([${1}]) + '\n')${2}
+snippet ut
+	class UT${1:ClassName}(unittest.TestCase):
+		"""unittest class of $1"""
+
+		def setUp(self):
+			${2:pass}
+
+		def tearDown(self):
+			${3:pass}
+
+		def test_${4:function_name}(self):
+			"""test function of $4"""
+			${5:pass}
