@@ -1,36 +1,382 @@
-snippet env
+snippet #!
 	#!/usr/bin/env python
-	# -*- coding:gbk -*-
-	# Authored by ZhangAo
-	# `strftime("%Y-%m-%d %H:%M:%S")`
+	#-*- coding: gb18030 -*-
 
-	"""${1}
+snippet imp
+	import ${1:module}
+# Module Docstring
+snippet docs
+	"""${3:description}
+
+	File: ${1:`Filename('$1.py', 'foo.py')`}
+	Author: ${2:`g:snips_author`}
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+snippet wh
+	while ${1:condition}:
+		${2:# code...}
+snippet for
+	for ${1:needle} in ${2:haystack}:
+		${3:# code...}
+# New Class
+snippet cl
+	class ${1:ClassName}(${2:object}):
+		"""${3:$1}
+		
+		Attributes:
+		"""
+		def __init__(self, ${4:arg}):
+			"""
+			Args:
+				$4
+			Raises: ${5:None}
+			"""
+			${6:super($1, self).__init__()}
+			self.$4 = $4
+			${7}
+# New Function
+snippet def
+	def ${1:fname}(`indent('.') ? 'self, ' : ''`${2:params}):
+		"""${3:$1}
+		
+		Args:
+			$2
+		Returns:
+			${4:value_or_type} 
+		Raises: ${5:None}
+		"""
+		${6:pass}
+# New Method
+snippet defs
+	@staticmethod
+	def ${1:fname}(${2:arg}):
+		"""static method. ${3:$1}
+		
+		Args:
+			$2
+		Returns:
+			${4} 
+		Raises: ${5:None}
+		"""
+		${6:pass}
+# New Property
+snippet property
+	def ${1:foo}():
+		doc = "${2:The $1 property.}"
+		def fget(self):
+			${3:return self.__$1}
+		def fset(self, value):
+			${4:self.__$1 = value}
+# Lambda
+snippet ld
+	${1:var} = lambda ${2:vars} : ${3:action}
+snippet .
+	self.
+snippet try Try/Except
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+snippet try Try/Except/Else
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	else:
+		${5:pass}
+snippet try Try/Except/Finally
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	finally:
+		${5:pass}
+snippet try Try/Except/Else/Finally
+	try:
+		${1:pass}
+	except ${2:Exception}, ${3:e}:
+		${4:raise $3}
+	else:
+		${5:pass}
+	finally:
+		${6:pass}
+# if __name__ == '__main__':
+snippet ifmain
+	if __name__ == '__main__':
+		${1:main()}
+# __magic__
+snippet _
+	__${1:init}__${2}
+snippet log
+	logging.basicConfig(level=logging.DEBUG,
+						format='%(levelname)s: %(asctime)s %(filename)s[line:%(lineno)d]'
+							   ' [%(process)d] %(message)s',
+						datefmt='%m-%d %H:%M:%S',
+						filename=None,
+						filemode='a')
+# env for __init__.py file
+snippet ienv
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${1:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import ${2}
+# env for bigflow code
+snippet blib
+	#!/usr/bin/env ${1:pyrun}
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${2:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
 	"""
 
 	import sys
 	import os
 	import traceback
-	from argparse import ArgumentParser
+	import logging
+	${3}
+	
+# env for bigflow code
+snippet bcmd
+	#!/usr/bin/env ${1:pyrun}
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${2:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import sys
+	import os
+	import traceback
+	import logging
+
+	from bigflow import base
+	from bigflow import transforms
+	from bigflow import input
+	from bigflow import output
+	
+	from bigflow_utils import BigflowUtils
+	from autoopt_basic import common_arg_parser
+	from autoopt_basic import parse_args
+	from autoopt_basic import hdfs_workroot
+
+	def create_arg_parser(argv):
+		"""create_arg_parser
+		
+		Args: argv      list of args
+
+		Returns:
+			an arp-parser 
+
+		Raises: error of arg_parser.parse_args()
+		"""
+		arg_parser = common_arg_parser(description="$2")
+		args = parse_args(arg_parser, argv)
+		return args
+
+
+	def create_pipeline(args):
+		"""create_pipeline
+		
+		Args:
+			args    args result of argparser
+
+		Returns:
+			a pipeline of bigflow 
+
+		Raises: None
+
+		Exit:
+			-1 		if get run mode failed
+		"""
+		pipeline_params = {}
+		if args.is_local:
+			pipeline_params['pipeline_type'] = "LOCAL"
+		elif args.is_hadoop:
+			pipeline_params['pipeline_type'] = "HADOOP"
+			pipeline_params['default_concurrency'] = 997
+			pipeline_params['hadoop_job_conf'] = {
+					"mapred.job.map.capacity": "1000",
+					"mapred.job.reduce.capacity": "1000",
+					"mapred.job.priority" : "NORMAL",
+					"abaci.dag.datasize.per.reduce": str(1000 * 1000 * 10),
+					"mapred.job.name": "zhangao-job",
+			}
+
+			pipeline_params['tmp_data_path'] = ${3:hdfs_workroot() + '}/tmp'
+		else:
+			logging.critical("bigflow run mode setting error")
+			exit(-1)
+
+		# create a pipeline
+		pipeline = BigflowUtils.create_pipeline(**pipeline_params)
+		return pipeline
 
 	if __name__ == "__main__":
-		arg_parser = ArgumentParser()
-		arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
-		arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${2}
-		args = arg_parser.parse_args()
+		try:
+			args = create_arg_parser(sys.argv[1:])
+			pipeline = create_pipeline(args)
+
+			pc_input = pipeline.read(input.TextFile(args.inpath))\
+					   .map(lambda x: x.rstrip().split('\t'))
+			${4}
+
+			pipeline.write(pc_output, output.TextFile(args.outpath))
+
+			BigflowUtils.autorun()
+		except Exception as e:
+			logging.critical(traceback.format_exc())
+			exit(-1)
 		
+snippet env
+	#!/usr/bin/env python
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""${1:description}
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import sys
+	import os
+	import traceback
+	import logging
+	${3}
+	
+	from autoopt_basic import common_arg_parser
+	from autoopt_basic import parse_args
+
+	def create_arg_parser(argv):
+		"""create_arg_parser
+		
+		Args: argv      list of args
+
+		Returns:
+			an arp-parser 
+
+		Raises: error of arg_parser.parse_args()
+		"""
+		arg_parser = common_arg_parser(description="$2")
+		args = parse_args(arg_parser, argv)
+		return args
+
+
+	if __name__ == "__main__":
+		try:
+			args = create_arg_parser(sys.argv[1:])
+			${4}
+		except Exception as e:
+			logging.critical(traceback.format_exc())
+			exit(-1)
+
+snippet utenv
+	#!/usr/bin/env ${1:python}
+	# -*- coding:gb18030 -*-
+	##########################################################
+	# Copyright (c) `strftime("%Y")` Baidu.com, Inc. All Rights Reserved #
+	##########################################################
+
+	"""unittest of $3
+
+	Filname: `expand("%:t")`
+	Authors: ZhangAo(@baidu.com)
+	Date: `strftime("%Y-%m-%d %H:%M:%S")`
+	"""
+
+	import sys
+	import os
+	import traceback
+	import logging
+	import unittest
+
+	sys.path.insert(0, '${2:..}')
+	import ${3:module_to_be_tested}
+	sys.path.pop(0)
+
+	${4}
+
+	if __name__ == "__main__":
+		logging.basicConfig(level=logging.DEBUG,
+							format='%(levelname)s: %(asctime)s %(filename)s[line:%(lineno)d]'
+								   ' [%(process)d] %(message)s',
+							datefmt='%m-%d %H:%M:%S,%m',
+							filename=None,
+							filemode='a')
+
+		unittest.main()
+snippet pipeline
+	def create_pipeline(args):
+		"""create_pipeline
+		
+		Args:
+			args    args result of argparser
+
+		Returns:
+			a pipeline of bigflow 
+
+		Raises: None
+
+		Exit:
+			-1 		if get run mode failed
+		"""
+		pipeline_params = {}
+		if args.is_local:
+			pipeline_params['pipeline_type'] = "LOCAL"
+		elif args.is_hadoop:
+			pipeline_params['pipeline_type'] = "HADOOP"
+			pipeline_params['tmp_data_path'] = hdfs_workroot() + '/tmp'
+		else:
+			logging.critical("bigflow run mode setting error")
+			exit(-1)
+
+		# create a pipeline
+		pipeline = BigflowUtils.create_pipeline(**pipeline_params)
+		return pipeline
+
 snippet arg
-	arg_parser = ArgumentParser()
-	arg_parser.add_argument("-i", "--input", dest="input", help="input file path")
-	arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${1}
+	from argparse import ArgumentParser
+	arg_parser = ArgumentParser(description="${1}")
+	arg_parser.add_argument("input", nargs="?", help="input file path")
+	arg_parser.add_argument("-o", "--output", dest="output", help="output file path")${2}
 	args = arg_parser.parse_args()
 snippet fs
 	ifs = None
 	ofs = None
-	if args.${1:input} is None or not os.path.isfile(args.$1):
+	if args.${1:input} is None:
+		logging.info("<input> is None. using stdin instead.")
 		ifs = sys.stdin
-	else:
+	elif os.path.isfile(args.$1):
 		ifs = open(args.$1, 'r')
+	else:
+		logging.critical("input file is not exist: [%s]" % args.${1:input})
+		exit(-1)
 	if args.${2:output} is None:
+		logging.info("<output> is None. using stdout instead.")
 		ofs = sys.stdout
 	else:
 		ofs = open(args.$2, 'w')
@@ -43,11 +389,11 @@ snippet stderr
 	sys.stderr.write("${1}\n")${2}
 snippet forline
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${2}
 snippet forl
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${2}
 snippet count
 		line_count += 1
@@ -58,7 +404,7 @@ snippet count
 snippet forc
 	line_count = 0
 	for line in ifs:
-		tokens = line.rstrip().split('${1:\t}')
+		fields = line.rstrip().split('${1:\t}')
 		${3}
 		line_count += 1
 		if line_count % ${2:10000} == 0:
@@ -67,9 +413,45 @@ snippet forc
 snippet group
 	group = grouper.Grouper(ifs)
 	while group.has_next():
+		key = group.get_key()
+		${1}
+		while group.key_same():
+			value = group.next_value()
+			${2}
+snippet group2
+	group = grouper.Grouper(ifs)
+	while group.has_next():
 		key, value = group.next_group()
 		${1}
+snippet joint
+	'\t'.join([${1}])${2}
 snippet prtkv
 	ofs.write("%s\t%s\n" % (${1}, '${2:\t}'.join(${3})))${4}
 snippet prtkv2
 	ofs.write("%s\t%s\n" % ('${1:_}'.join([${2}]), '${3:\t}'.join([${4}])))${5}
+snippet pjoin
+	ofs.write('\t'.join([${1}]) + '\n')${2}
+snippet ut
+	class UT${1:ClassName}(unittest.TestCase):
+		"""unittest class of $1"""
+
+		def setUp(self):
+			${2:pass}
+
+		def tearDown(self):
+			${3:pass}
+
+		def test_${4:function_name}(self):
+			"""test function of $4"""
+			${5:pass}
+snippet deft
+	def test_${1:function_name}(self):
+		"""test function of $1"""
+		${2:pass}
+# import bigflow
+snippet impb
+	from bigflow import base
+	from bigflow import transforms
+	from bigflow import input
+	from bigflow import output
+	${1}

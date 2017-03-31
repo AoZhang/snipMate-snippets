@@ -1,0 +1,17 @@
+snippet jobconf
+	# Authored by ZhangAo
+	# `strftime("%Y-%m-%d %H:%M:%S")`
+
+	LOCAL_ROOT = "{%LOCAL_ROOT%}"
+	${1}
+
+	# vim: ft=python.jobconf
+snippet job
+	JOB (
+		jobname = "${1:jobname}",
+		depends = "${2}",
+		comment = "${3:comment}",
+		command = "${4:command}",
+	)$5
+snippet var
+	{%${1:VAR_NAME}%}${2}
